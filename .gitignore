@@ -1,0 +1,11 @@
+composer.phar
+composer.lock
+/vendor
+.env
+monolog.log
+
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+.phpunit.result.cache
