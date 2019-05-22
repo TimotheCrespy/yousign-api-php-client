@@ -1,6 +1,6 @@
 {
     "name": "timothecrespy/yousign-api-php-client",
-    "description": "The Laravel Framework.",
+    "description": "A PHP client library for accessing Yousign REST APIs",
     "keywords": ["yousign", "api", "rest"],
     "license": "MIT",
     "homepage": "https://www.timothecrespy.fr",
@@ -18,7 +18,7 @@
         "php": ">=7.0.0",
         "guzzlehttp/guzzle": "^6.3",
         "monolog/monolog": "^1.24",
-        "vlucas/phpdotenv": "^3.3"
+        "vlucas/phpdotenv": "^2.6"
     },
     "require-dev": {
         "phpunit/phpunit": "^7.5|^8.0",
