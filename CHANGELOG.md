@@ -2,7 +2,19 @@
 
 All notable changes to `yousign-api-php-client` will be documented in this file.
 
-## [Unreleased](https://github.com/timothecrespy/yousign-api-php-client/compare/v1.0.0...master)
+## Unreleased
+
+---
+
+## [1.2.0 - 2019-05-23](https://github.com/timothecrespy/yousign-api-php-client/v1.2.0)
+
+### Added
+- Modification of a procedure with `putProcedure($id, $name, $description, $start, $members, $config)`
+- Deletion of a procedure with `deleteProcedure($id)`
+- Added optional `$config` parameter in `postProcedure($name, $description, $start, $members, $config)`
+
+### Changed
+- Change UUID regex names
 
 ---
 
