@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use \Exception;
-use \InvalidArgumentException;
+use Exception;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Yousign\YousignClient;
 
 class ClientTest extends TestCase
 {
     use TestInit;
-
-    private static $stagingApiKey = '';
 
     /**
      * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter
