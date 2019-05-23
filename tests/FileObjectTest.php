@@ -121,7 +121,7 @@ class FileObjectTest extends TestCase
             $reason = 'Signed by someone with Yousign'
         );
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $fileObject->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $fileObject->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteFileObject(

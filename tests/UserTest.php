@@ -62,7 +62,7 @@ class UserTest extends TestCase
             $phone = $this->fakerPhone()
         );
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $user->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $user->id, $matches);
         $id = $matches[ 0 ];
 
         $user = $yousignClient->getUser(
@@ -102,7 +102,7 @@ class UserTest extends TestCase
             $phone = $this->fakerPhone()
         );
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $user->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $user->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteUser(

@@ -78,7 +78,7 @@ trait TestInit
     {
         $yousignClient->getLogger()->info('Deleting user with id: ' . $user->id);
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $user->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $user->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteUser(
@@ -97,7 +97,7 @@ trait TestInit
     {
         $yousignClient->getLogger()->info('Deleting member with id: ' . $member->id);
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $member->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $member->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteMember(
@@ -116,7 +116,7 @@ trait TestInit
     {
         $yousignClient->getLogger()->info('Deleting file object with id: ' . $fileObject->id);
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $fileObject->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $fileObject->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteFileObject(

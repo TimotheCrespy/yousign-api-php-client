@@ -52,12 +52,12 @@ class YousignClient
     /**
      * The regex for id in path
      */
-    const UUID_REGEX_PATH = '/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/';
+    const UUID_REGEX_STRICT = '/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/';
 
     /**
      * The regex for id in body
      */
-    const UUID_REGEX_BODY = '/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/';
+    const UUID_REGEX = '/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/';
     
     /**
      * @var string $baseUri The API base URI
@@ -373,7 +373,7 @@ class YousignClient
         $method = 'GET';
         $path = '/users';
 
-        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
             $message = "The user's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -444,7 +444,7 @@ class YousignClient
         $method = 'DELETE';
         $path = '/users';
 
-        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
             $message = "The user's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -465,7 +465,7 @@ class YousignClient
         $method = 'GET';
         $path = '/members';
 
-        if (!is_string($procedure) || !preg_match(self::UUID_REGEX_BODY, $procedure)) {
+        if (!is_string($procedure) || !preg_match(self::UUID_REGEX, $procedure)) {
             $message = "The procedure's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -523,7 +523,7 @@ class YousignClient
         }
         $body[ 'phone' ] = $phone;
 
-        if (!is_string($procedure) || !preg_match(self::UUID_REGEX_BODY, $procedure)) {
+        if (!is_string($procedure) || !preg_match(self::UUID_REGEX, $procedure)) {
             $message = "The procedure's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -546,7 +546,7 @@ class YousignClient
         $method = 'DELETE';
         $path = '/members';
 
-        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
             $message = "The user's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -633,13 +633,13 @@ class YousignClient
 
         $body = [];
 
-        if (!is_string($file) || !preg_match(self::UUID_REGEX_BODY, $file)) {
+        if (!is_string($file) || !preg_match(self::UUID_REGEX, $file)) {
             $message = "The file object's file's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
         $body[ 'file' ] = $file;
 
-        if (!is_string($file) || !preg_match(self::UUID_REGEX_BODY, $member)) {
+        if (!is_string($file) || !preg_match(self::UUID_REGEX, $member)) {
             $message = "The file object's member's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
@@ -668,8 +668,8 @@ class YousignClient
         $method = 'DELETE';
         $path = '/file_objects';
 
-        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
-            $message = "The file_objects's id is not a valid UUID.";
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The file objects's id is not a valid UUID.";
             throw new InvalidArgumentException($message);
         }
         $path .= '/' . $id;
@@ -685,13 +685,15 @@ class YousignClient
      * @param boolean $start       The status of the procedure, either true or false [Optional].
      * @param array   $members     The members for the procedure [Optional].
      *                             Compulsory if the procedure start is true.
+     * @param array   $config      The config for the procedure [Optional].
      * @return json
      */
     public function postProcedure(
         string $name,
         string $description = '',
         bool $start = true,
-        array $members = []
+        array $members = [],
+        array $config = []
     ) {
         $method = 'POST';
         $path = '/procedures';
@@ -710,8 +712,86 @@ class YousignClient
             $body[ 'members' ] = $members;
         }
 
+        $body[ 'config' ] = $config;
+
         $body = json_encode($body);
 
         return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Updates a procedure.
+     *
+     * @param string  $id          The id of the procedure.
+     * @param string  $name        The name of the procedure [Optional].
+     * @param string  $description The description of the procedure [Optional].
+     * @param boolean $start       The status of the procedure, either true or false [Optional].
+     * @param array   $members     The members for the procedure [Optional].
+     * @param array   $config      The config for the procedure [Optional].
+     * @return json
+     */
+    public function putProcedure(
+        string $id,
+        string $name = null,
+        string $description = null,
+        bool $start = null,
+        array $members = null,
+        array $config = null
+    ) {
+        $method = 'PUT';
+        $path = '/procedures';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The procedure's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        $body = [];
+
+        if (!is_null($name)) {
+            $body[ 'name' ] = $name;
+        }
+
+        if (!is_null($description)) {
+            $body[ 'description' ] = $description;
+        }
+
+        if (!is_null($start)) {
+            $body[ 'start' ] = $start;
+        }
+
+        if (!is_null($members)) {
+            $body[ 'members' ] = $members;
+        }
+
+        if (!is_null($config)) {
+            $body[ 'config' ] = $config;
+        }
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Deletes a procedure.
+     *
+     * @param string $id The id of the procedure.
+     * @return json
+     */
+    public function deleteProcedure(
+        string $id
+    ) {
+        $method = 'DELETE';
+        $path = '/procedures';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The user's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
     }
 }

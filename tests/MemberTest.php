@@ -85,7 +85,7 @@ class MemberTest extends TestCase
             $procedure = $procedure->id
         );
 
-        preg_match(YousignClient::UUID_REGEX_BODY, $user->id, $matches);
+        preg_match(YousignClient::UUID_REGEX, $user->id, $matches);
         $id = $matches[ 0 ];
         
         $response = $yousignClient->deleteMember(
