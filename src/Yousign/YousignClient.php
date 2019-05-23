@@ -3,7 +3,9 @@
 namespace Yousign;
 
 use Exception;
+use function GuzzleHttp\json_encode;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Request;
 use InvalidArgumentException;
 use Monolog\Handler\StreamHandler;
@@ -41,6 +43,21 @@ class YousignClient
      * The API base staging (test) URI
      */
     const API_BASE_PATH_TEST = 'https://staging-api.yousign.com';
+
+    /**
+     * The compulsory file extension
+     */
+    const FILE_EXTENSION = '.pdf';
+
+    /**
+     * The regex for id in path
+     */
+    const UUID_REGEX_PATH = '/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/';
+
+    /**
+     * The regex for id in body
+     */
+    const UUID_REGEX_BODY = '/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/';
     
     /**
      * @var string $baseUri The API base URI
@@ -185,9 +202,9 @@ class YousignClient
      *
      * @param string $method            The request's method.
      * @param string $path              The request's path.
-     * @param array  $query             The request's query paramters.
-     * @param string $body              The request's method body.
-     * @param array  $additionalHeaders The request's method additional headers.
+     * @param array  $query             The request's query paramters [Optional].
+     * @param string $body              The request's method body [Optional].
+     * @param array  $additionalHeaders The request's method additional headers [Optional].
      *
      * @return json
      */
@@ -226,12 +243,11 @@ class YousignClient
             $response = $client->send($request, [
                 'query' => $query
             ]);
-        } catch (Exception $e) {
+        } catch (ClientException $e) {
             $this->getLogger()->error(
-                'An error occured (sendRequest@YousignClient): ',
-                $e->getMessage()
+                'An error occured (sendRequest@YousignClient): ' . $e->getResponse()->getBody()->getContents()
             );
-            throw new Exception($e->getMessage());
+            throw new ClientException($e->getResponse()->getBody(), $request);
         }
 
         return json_decode($response->getBody());
@@ -241,7 +257,6 @@ class YousignClient
      * Checks the request's method.
      *
      * @param string $method The request's method.
-     *
      * @return boolean
      */
     private function checkRequestMethod(string $method)
@@ -269,7 +284,6 @@ class YousignClient
      * Checks the request's path.
      *
      * @param string $path The request's path.
-     *
      * @return boolean
      */
     private function checkRequestPath(string $path)
@@ -291,7 +305,6 @@ class YousignClient
      * Checks the request's query.
      *
      * @param array $query The request's query parameters.
-     *
      * @return boolean
      */
     private function checkRequestQuery(array $query)
@@ -308,7 +321,6 @@ class YousignClient
      * Checks the request's body.
      *
      * @param string $body The request's body.
-     *
      * @return boolean
      */
     private function checkRequestBody(string $body)
@@ -325,7 +337,6 @@ class YousignClient
      * Checks the request's additional headers.
      *
      * @param array $additionalHeaders The request's additional headers.
-     *
      * @return boolean
      */
     private function checkRequestAdditionalHeaders(array $additionalHeaders)
@@ -339,7 +350,7 @@ class YousignClient
     }
 
     /**
-     * Get the account's users.
+     * Gets the account's users.
      *
      * @return json
      */
@@ -347,6 +358,360 @@ class YousignClient
     {
         $method = 'GET';
         $path = '/users';
-        return $this->sendRequest($method, $path);
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Gets a user from an id.
+     *
+     * @param string $id The id of the user.
+     * @return json
+     */
+    public function getUser(
+        string $id
+    ) {
+        $method = 'GET';
+        $path = '/users';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+            $message = "The user's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Creates a user.
+     *
+     * @param string $firstname The first name of the user.
+     * @param string $lastname  The last name of the user.
+     * @param string $email     The email address of the user.
+     * @param string $phone     The phone number of the user,
+     *                          following the E.164 recommendation (https://en.wikipedia.org/wiki/E.164).
+     * @return json
+     */
+    public function postUser(
+        string $firstname,
+        string $lastname,
+        string $email,
+        string $phone
+    ) {
+        $method = 'POST';
+        $path = '/users';
+
+        $body = [];
+
+        if (!is_string($firstname)) {
+            $message = "The user's first name is not a string.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'firstname' ] = $firstname;
+
+        if (!is_string($lastname)) {
+            $message = "The user's first name is not a string.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'lastname' ] = $lastname;
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "The user's email address is not valid.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'email' ] = $email;
+
+        if (!preg_match('/^\+?[1-9]\d{1,14}$/', $phone)) {
+            $message = "The user's phone number is not valid.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'phone' ] = $phone;
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Deletes a user.
+     *
+     * @param string $id The id of the user.
+     * @return json
+     */
+    public function deleteUser(
+        string $id
+    ) {
+        $method = 'DELETE';
+        $path = '/users';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+            $message = "The user's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Gets a procedure's members.
+     *
+     * @param string $procedure The procedure to retrieve the members on.
+     * @return json
+     */
+    public function getMembers(
+        string $procedure
+    ) {
+        $method = 'GET';
+        $path = '/members';
+
+        if (!is_string($procedure) || !preg_match(self::UUID_REGEX_BODY, $procedure)) {
+            $message = "The procedure's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'procedure' ] = $procedure;
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Creates a member.
+     *
+     * @param string $firstname The first name of the member.
+     * @param string $lastname  The last name of the member.
+     * @param string $email     The email address of the member.
+     * @param string $phone     The phone number of the member,
+     *                          following the E.164 recommendation (https://en.wikipedia.org/wiki/E.164).
+     * @param string $procedure The procedure of the member.
+     * @return json
+     */
+    public function postMember(
+        string $firstname,
+        string $lastname,
+        string $email,
+        string $phone,
+        string $procedure
+    ) {
+        $method = 'POST';
+        $path = '/members';
+
+        $body = [];
+
+        if (!is_string($firstname)) {
+            $message = "The user's first name is not a string.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'firstname' ] = $firstname;
+
+        if (!is_string($lastname)) {
+            $message = "The user's first name is not a string.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'lastname' ] = $lastname;
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "The user's email address is not valid.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'email' ] = $email;
+
+        if (!preg_match('/^\+?[1-9]\d{1,14}$/', $phone)) {
+            $message = "The user's phone number is not valid.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'phone' ] = $phone;
+
+        if (!is_string($procedure) || !preg_match(self::UUID_REGEX_BODY, $procedure)) {
+            $message = "The procedure's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'procedure' ] = $procedure;
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Deletes a member.
+     *
+     * @param string $id The id of the member.
+     * @return json
+     */
+    public function deleteMember(
+        string $id
+    ) {
+        $method = 'DELETE';
+        $path = '/members';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+            $message = "The user's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Creates a file.
+     *
+     * @param string $name      The name of the file, with the '.pdf' extension.
+     * @param string $content   The base64 of the file, without the base64 header.
+     * @param string $type      The type of the file, either 'attachment' or 'signable'.
+     * @param string $procedure The procedure for the file [Optional].
+     *                          Compulsory if the file type is 'attachment'.
+     * @return json
+     */
+    public function postFile(
+        string $name,
+        string $content,
+        string $type,
+        string $procedure = null
+    ) {
+        $method = 'POST';
+        $path = '/files';
+
+        $body = [];
+
+        if (!is_string($name) || substr($name, -strlen(self::FILE_EXTENSION)) !== self::FILE_EXTENSION) {
+            $message = "The file's name is not a string ending with '.pdf'.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'name' ] = $name;
+
+        if (base64_encode(base64_decode($content, true)) !== $content) {
+            $message = "The file's content is not a base64 string without headers.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'content' ] = $content;
+
+        if (!is_string($type) || ($type != 'signable' && $type != 'attachment')) {
+            $message = "The file's type is not a string with either value 'signable' nor 'attachment'.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'type' ] = $type;
+
+        if ($type == 'attachment') {
+            if ($procedure == null) {
+                $message = "The file's procedure's id is not provided (file type is 'attachment').";
+                throw new InvalidArgumentException($message);
+            }
+            $body[ 'procedure' ] = $procedure;
+        }
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Creates a file object.
+     *
+     * @param string  $file     The file for the file oject.
+     * @param string  $member   The member for the file oject.
+     * @param integer $page     The number of the page where the signature image will be displayed on the file.
+     * @param string  $position The coordinates of the signature image on the page.
+     * @param string  $reason   The main information on the signature image.
+     * @param string  $mention  The first information on the signature image [Optional].
+     * @param string  $mention2 The second information on the signature image [Optional].
+     * @return json
+     */
+    public function postFileObject(
+        string $file,
+        string $member,
+        int $page,
+        string $position,
+        string $reason,
+        string $mention = '',
+        string $mention2 = ''
+    ) {
+        $method = 'POST';
+        $path = '/file_objects';
+
+        $body = [];
+
+        if (!is_string($file) || !preg_match(self::UUID_REGEX_BODY, $file)) {
+            $message = "The file object's file's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'file' ] = $file;
+
+        if (!is_string($file) || !preg_match(self::UUID_REGEX_BODY, $member)) {
+            $message = "The file object's member's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $body[ 'member' ] = $member;
+
+        $body[ 'page' ] = $page;
+        $body[ 'position' ] = $position;
+        $body[ 'reason' ] = $reason;
+        $body[ 'mention' ] = $mention;
+        $body[ 'mention2' ] = $mention2;
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Deletes a file object.
+     *
+     * @param string $id The id of the file object.
+     * @return json
+     */
+    public function deleteFileObject(
+        string $id
+    ) {
+        $method = 'DELETE';
+        $path = '/file_objects';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_PATH, $id)) {
+            $message = "The file_objects's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Creates a procedure.
+     *
+     * @param string  $name        The name of the procedure.
+     * @param string  $description The description of the procedure [Optional].
+     * @param boolean $start       The status of the procedure, either true or false [Optional].
+     * @param array   $members     The members for the procedure [Optional].
+     *                             Compulsory if the procedure start is true.
+     * @return json
+     */
+    public function postProcedure(
+        string $name,
+        string $description = '',
+        bool $start = true,
+        array $members = []
+    ) {
+        $method = 'POST';
+        $path = '/procedures';
+
+        $body = [];
+
+        $body[ 'name' ] = $name;
+        $body[ 'description' ] = $description;
+        $body[ 'start' ] = $start;
+
+        if ($start) {
+            if ($members == null) {
+                $message = "The procedure's member array is not provided (procedure start is true).";
+                throw new InvalidArgumentException($message);
+            }
+            $body[ 'members' ] = $members;
+        }
+
+        $body = json_encode($body);
+
+        return $this->sendRequest($method, $path, [], $body, []);
     }
 }
