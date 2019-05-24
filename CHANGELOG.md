@@ -6,6 +6,18 @@ All notable changes to `yousign-api-php-client` will be documented in this file.
 
 ---
 
+## [1.3.0 - 2019-05-24](https://github.com/timothecrespy/yousign-api-php-client/v1.3.0)
+
+### Added
+- Access to a procedure with `getProcedure($id)`
+- Access to a file with `getFile($id)`
+- Access to a file contents with `getFileContents($id)`
+
+### Changed
+- Changed client instanciation arguments : `'api_url'` and `'api_key'` are now required
+
+---
+
 ## [1.2.0 - 2019-05-23](https://github.com/timothecrespy/yousign-api-php-client/v1.2.0)
 
 ### Added
@@ -14,7 +26,7 @@ All notable changes to `yousign-api-php-client` will be documented in this file.
 - Added optional `$config` parameter in `postProcedure($name, $description, $start, $members, $config)`
 
 ### Changed
-- Change UUID regex names
+- Changed UUID regex names
 
 ---
 

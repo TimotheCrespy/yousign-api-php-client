@@ -27,18 +27,17 @@ $ composer require timothecrespy/yousign-api-php-client
 
 ## Usage
 
+### Framework agnostic
 ``` php
 use TimotheCrespy\YousignClient;
 
+// It is recommended to store this value in a .env or equivalent file (and the API key, too)
+const YOUSIGN_PRODUCTION_API_URL = 'https://api.yousign.com';
+
 $yousignClient = new YousignClient([
-    'api_key' => 'YOUR_API_KEY'
+    'api_url' => self::YOUSIGN_PRODUCTION_API_URL,
+    'api_key' => '[YOUR_PRODUCTION_API_KEY]'
 ]);
-
-// If you are using Laravel (https://github.com/laravel/laravel), you could specify the default Laravel logger:
-$loggerInstance = \Log::getMonolog();
-$yousignClient->setLogger($loggerInstance);
-
-$yousignClient->getUsers();
 ```
 
 As the Yousign production API is not free, you might want to test it, with the staging environment:
@@ -46,11 +45,23 @@ As the Yousign production API is not free, you might want to test it, with the s
 ``` php
 use TimotheCrespy\YousignClient;
 
-// Will set the API base URI to 'https://staging-api.yousign.com' instead of 'https://api.yousign.com'
+// It is recommended to store this value in a .env or equivalent file (like the API key)
+const YOUSIGN_STAGING_API_URL = 'https://staging-api.yousign.com';
+
 $yousignClient = new YousignClient([
-    'api_key' => 'YOUR_STAGING_API_KEY',
-    'test' => true
+    'api_url' => self::YOUSIGN_STAGING_API_URL,
+    'api_key' => '[YOUR_STAGING_API_KEY]'
 ]);
+```
+
+### Laravel
+
+```php
+// If you are using Laravel (https://github.com/laravel/laravel), you could specify the default Laravel logger:
+$loggerInstance = Illuminate\Support\Facades\Log::getLogger();
+$yousignClient->setLogger($loggerInstance);
+
+$yousignClient->getUsers();
 ```
 
 ## Change log
