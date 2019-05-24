@@ -8,6 +8,7 @@ use Yousign\YousignClient;
 
 trait TestInit
 {
+    private static $stagingApiUrl = '';
     private static $stagingApiKey = '';
 
     private static $faker;
@@ -21,6 +22,7 @@ trait TestInit
     {
         $dotenv = new Dotenv(dirname(__DIR__, 1));
         $dotenv->load();
+        self::$stagingApiUrl = getenv('YOUSIGN_STAGING_API_URL');
         self::$stagingApiKey = getenv('YOUSIGN_STAGING_API_KEY');
 
         self::$faker = FakerFactory::create('fr_FR');

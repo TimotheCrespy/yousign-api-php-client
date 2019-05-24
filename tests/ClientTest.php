@@ -17,13 +17,65 @@ class ClientTest extends TestCase
      * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter
      * @return void
      */
+    public function test_client_cannot_be_instanciated_without_config_api_url_parameter()
+    {
+        $this->expectException(Exception::class);
+        $expectedExceptionMessage = "The config's 'api_url' element is required.";
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        $config = [
+            'api_key' => self::$stagingApiKey
+        ];
+        $yousignClient = new YousignClient($config);
+    }
+
+    /**
+     * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter as a string
+     * @return void
+     */
+    public function test_client_cannot_be_instanciated_without_config_api_url_string_parameter()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $expectedExceptionMessage = "The config's 'api_url' element is not in the form of a string.";
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        $config = [
+            'api_url' => 123456789,
+            'api_key' => self::$stagingApiKey
+        ];
+        $yousignClient = new YousignClient($config);
+    }
+
+    /**
+     * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter long enough
+     * @return void
+     */
+    public function test_client_cannot_be_instanciated_without_config_api_url_url_parameter()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $expectedExceptionMessage = "The config's 'api_url' element is not a valid URL.";
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        $config = [
+            'api_url' => 'https:/www.timothecrespy.fr',
+            'api_key' => self::$stagingApiKey
+        ];
+        $yousignClient = new YousignClient($config);
+    }
+
+    /**
+     * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter
+     * @return void
+     */
     public function test_client_cannot_be_instanciated_without_config_api_key_parameter()
     {
         $this->expectException(Exception::class);
-        $expectedExceptionMessage = "The config's 'api_key' element";
+        $expectedExceptionMessage = "The config's 'api_key' element is required.";
         $this->expectExceptionMessage($expectedExceptionMessage);
 
-        $config = [];
+        $config = [
+            'api_url' => self::$stagingApiUrl
+        ];
         $yousignClient = new YousignClient($config);
     }
 
@@ -38,6 +90,7 @@ class ClientTest extends TestCase
         $this->expectExceptionMessage($expectedExceptionMessage);
 
         $config = [
+            'api_url' => self::$stagingApiUrl,
             'api_key' => 123456789
         ];
         $yousignClient = new YousignClient($config);
@@ -47,31 +100,15 @@ class ClientTest extends TestCase
      * Tests that a client cannot be instanciated without the $config[ 'api_key' ] parameter long enough
      * @return void
      */
-    public function test_client_cannot_be_instanciated_without_config_api_key_long_parameter()
+    public function test_client_cannot_be_instanciated_without_config_api_key_hexadecimal_parameter()
     {
         $this->expectException(InvalidArgumentException::class);
-        $expectedExceptionMessage = "The config's 'api_key' element does not have enough characters.";
+        $expectedExceptionMessage = "The config's 'api_key' element is not a valid hexadecimal string.";
         $this->expectExceptionMessage($expectedExceptionMessage);
 
         $config = [
-            'api_key' => '123456'
-        ];
-        $yousignClient = new YousignClient($config);
-    }
-
-    /**
-     * Tests that a client can be instanciated only with the $config[ 'is_testing' ] parameter as a boolean
-     * @return void
-     */
-    public function test_client_can_be_instanciated_only_with_config_is_testing_parameter_boolean()
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $expectedExceptionMessage = "The config's 'is_testing' element is not in the form of a boolean.";
-        $this->expectExceptionMessage($expectedExceptionMessage);
-
-        $config = [
-            'api_key' => '123456789',
-            'is_testing' => 'true'
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => '123456za'
         ];
         $yousignClient = new YousignClient($config);
     }
@@ -83,8 +120,8 @@ class ClientTest extends TestCase
     public function test_client_can_get_users()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 

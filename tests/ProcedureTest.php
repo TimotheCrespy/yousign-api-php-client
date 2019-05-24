@@ -20,8 +20,8 @@ class ProcedureTest extends TestCase
     public function test_client_can_post_unstarted_procedure()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -48,8 +48,8 @@ class ProcedureTest extends TestCase
     public function test_client_can_post_started_procedure()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -103,8 +103,8 @@ class ProcedureTest extends TestCase
     public function test_client_can_put_procedure()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -148,7 +148,7 @@ class ProcedureTest extends TestCase
 
         $this->assertTrue($procedure->name == $name);
         $this->assertTrue($procedure->description == $description);
-        $this->assertTrue(count($procedure->members) == 0);
+        $this->assertCount(0, $procedure->members);
         $this->assertTrue($procedure->status == 'draft');
 
         // Récupération de l'id de la procédure
@@ -171,7 +171,7 @@ class ProcedureTest extends TestCase
 
         $this->assertTrue($procedure->name == $name);
         $this->assertTrue($procedure->description == $description);
-        $this->assertTrue(count($procedure->members) == 1);
+        $this->assertCount(1, $procedure->members);
 
         // Procedure
         $procedure = $yousignClient->putProcedure(
@@ -196,8 +196,8 @@ class ProcedureTest extends TestCase
     public function test_client_can_delete_procedure()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -216,5 +216,44 @@ class ProcedureTest extends TestCase
         );
 
         $this->assertTrue($response == null);
+    }
+
+    /**
+     * Tests that a client can get a procedure via API call
+     * @return void
+     */
+    public function test_client_can_get_procedure()
+    {
+        $config = [
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
+        ];
+        $yousignClient = new YousignClient($config);
+
+        // Procedure
+        $procedure = $yousignClient->postProcedure(
+            $name = 'My procedure',
+            $description = 'Description of my procedure',
+            $start = false
+        );
+
+        $this->assertObjectHasAttribute('id', $procedure);
+
+        preg_match(YousignClient::UUID_REGEX, $procedure->id, $matches);
+        $id = $matches[ 0 ];
+
+        // Procedure
+        $procedure = $yousignClient->getProcedure(
+            $id = $id
+        );
+
+        $this->assertObjectHasAttribute('id', $procedure);
+        $this->assertObjectHasAttribute('name', $procedure);
+        $this->assertObjectHasAttribute('description', $procedure);
+        $this->assertObjectHasAttribute('status', $procedure);
+
+        $this->assertTrue($procedure->name == $name);
+        $this->assertTrue($procedure->description == $description);
+        $this->assertCount(0, $procedure->members);
     }
 }

@@ -20,8 +20,8 @@ class MemberTest extends TestCase
     public function test_client_can_post_member_to_procedure()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -62,8 +62,8 @@ class MemberTest extends TestCase
     public function test_client_can_delete_member()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 

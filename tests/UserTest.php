@@ -20,8 +20,8 @@ class UserTest extends TestCase
     public function test_client_can_post_user()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -50,8 +50,8 @@ class UserTest extends TestCase
     public function test_client_can_get_user()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -90,8 +90,8 @@ class UserTest extends TestCase
     public function test_client_can_delete_user()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 

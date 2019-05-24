@@ -18,8 +18,8 @@ class FileObjectTest extends TestCase
     public function test_client_can_post_file_object()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 
@@ -78,8 +78,8 @@ class FileObjectTest extends TestCase
     public function test_client_can_delete_file_object()
     {
         $config = [
-            'api_key' => self::$stagingApiKey,
-            'is_testing' => true
+            'api_url' => self::$stagingApiUrl,
+            'api_key' => self::$stagingApiKey
         ];
         $yousignClient = new YousignClient($config);
 

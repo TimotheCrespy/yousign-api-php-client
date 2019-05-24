@@ -18,15 +18,16 @@ use Psr\Log\LoggerInterface;
  * Usage example (production):
  *
  *   $yousignClient = new YousignApi([
- *       'api_key' => '[YOUR_API_KEY]'
+ *       'api_url' => '[PRODUCTION_API_URL]',
+ *       'api_key' => '[YOUR_PRODUCTION_API_KEY]'
  *   ]);
  *   $users = $yousignClient->getUsers();
  *
  * Usage example (test):
  *
  *   $yousignClient = new YousignApi([
- *       'api_key' => '[YOUR_STAGING_API_KEY]',
- *       'is_testing' => true
+ *       'api_url' => '[STAGING_API_URL]',
+ *       'api_key' => '[YOUR_STAGING_API_KEY]'
  *   ]);
  *   $users = $yousignClient->getUsers();
  *
@@ -34,16 +35,6 @@ use Psr\Log\LoggerInterface;
  */
 class YousignClient
 {
-    /**
-     * The API base production URI
-     */
-    const API_BASE_PATH = 'https://api.yousign.com';
-
-    /**
-     * The API base staging (test) URI
-     */
-    const API_BASE_PATH_TEST = 'https://staging-api.yousign.com';
-
     /**
      * The compulsory file extension
      */
@@ -60,9 +51,9 @@ class YousignClient
     const UUID_REGEX = '/[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}/';
     
     /**
-     * @var string $baseUri The API base URI
+     * @var string $apiUrl The API base URL
      */
-    private $baseUri = '';
+    private $apiUrl = '';
 
     /**
      * @var string $apiKey The API key
@@ -98,14 +89,41 @@ class YousignClient
      */
     private function initialiseEnvironment(array $config)
     {
+        $this->checkConfigApiUrl($config);
+        
         $this->checkConfigApiKey($config);
-
-        $this->checkConfigIsTesting($config);
         
         $this->baseHeaders = [
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-type' => 'application/json'
         ];
+
+        return true;
+    }
+    
+    /**
+     * Checks the config's 'api_url' element.
+     *
+     * @param array $config The config array.
+     * @return boolean
+     */
+    private function checkConfigApiUrl(array $config)
+    {
+        if (isset($config[ 'api_url' ])) {
+            $api_url = $config[ 'api_url' ];
+            if (!is_string($api_url)) {
+                $message = "The config's 'api_url' element is not in the form of a string.";
+                throw new InvalidArgumentException($message);
+            } elseif (!filter_var($api_url, FILTER_VALIDATE_URL)) {
+                $message = "The config's 'api_url' element is not a valid URL.";
+                throw new InvalidArgumentException($message);
+            }
+        } else {
+            $message = "The config's 'api_url' element is required.";
+            throw new Exception($message);
+        }
+
+        $this->apiUrl = $api_url;
 
         return true;
     }
@@ -123,8 +141,8 @@ class YousignClient
             if (!is_string($api_key)) {
                 $message = "The config's 'api_key' element is not in the form of a string.";
                 throw new InvalidArgumentException($message);
-            } elseif (strlen($api_key) < 8) {
-                $message = "The config's 'api_key' element does not have enough characters.";
+            } elseif (!ctype_xdigit($api_key)) {
+                $message = "The config's 'api_key' element is not a valid hexadecimal string.";
                 throw new InvalidArgumentException($message);
             }
         } else {
@@ -136,30 +154,7 @@ class YousignClient
 
         return true;
     }
-
-    /**
-     * Checks the config's 'is_testing' element, and sets the $baseUri variable accordingly
-     *
-     * @param array $config The config array.
-     * @return boolean
-     */
-    private function checkConfigIsTesting(array $config)
-    {
-        if (isset($config[ 'is_testing' ])) {
-            $is_testing = $config[ 'is_testing' ];
-            if (!is_bool($is_testing)) {
-                $message = "The config's 'is_testing' element is not in the form of a boolean.";
-                throw new InvalidArgumentException($message);
-            } else {
-                $this->baseUri = self::API_BASE_PATH_TEST;
-            }
-        } else {
-            $this->baseUri = self::API_BASE_PATH;
-        }
-
-        return true;
-    }
-
+    
     /**
      * Sets the Logger object
      *
@@ -230,7 +225,7 @@ class YousignClient
             );
             
             $client = new Client([
-                'base_uri' => $this->baseUri
+                'base_uri' => $this->apiUrl
             ]);
 
             $request = new Request(
@@ -454,7 +449,7 @@ class YousignClient
     }
 
     /**
-     * Gets a procedure's members.
+     * Gets a procedure members.
      *
      * @param string $procedure The procedure to retrieve the members on.
      * @return json
@@ -596,7 +591,7 @@ class YousignClient
 
         if ($type == 'attachment') {
             if ($procedure == null) {
-                $message = "The file's procedure's id is not provided (file type is 'attachment').";
+                $message = "The file's procedure id is not provided (file type is 'attachment').";
                 throw new InvalidArgumentException($message);
             }
             $body[ 'procedure' ] = $procedure;
@@ -605,6 +600,50 @@ class YousignClient
         $body = json_encode($body);
 
         return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Gets a file from an id.
+     *
+     * @param string $id The id of the file.
+     * @return json
+     */
+    public function getFile(
+        string $id
+    ) {
+        $method = 'GET';
+        $path = '/files';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The file's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
+    }
+
+    /**
+     * Gets a file contents from an id.
+     *
+     * @param string $id The id of the file.
+     * @return json
+     */
+    public function getFileContents(
+        string $id
+    ) {
+        $method = 'GET';
+        $path = '/files';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The file's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        $path .= '/download';
+
+        return $this->sendRequest($method, $path, [], '', []);
     }
 
     /**
@@ -717,6 +756,27 @@ class YousignClient
         $body = json_encode($body);
 
         return $this->sendRequest($method, $path, [], $body, []);
+    }
+
+    /**
+     * Gets a procedure from an id.
+     *
+     * @param string $id The id of the procedure.
+     * @return json
+     */
+    public function getProcedure(
+        string $id
+    ) {
+        $method = 'GET';
+        $path = '/procedures';
+
+        if (!is_string($id) || !preg_match(self::UUID_REGEX_STRICT, $id)) {
+            $message = "The procedure's id is not a valid UUID.";
+            throw new InvalidArgumentException($message);
+        }
+        $path .= '/' . $id;
+
+        return $this->sendRequest($method, $path, [], '', []);
     }
 
     /**
