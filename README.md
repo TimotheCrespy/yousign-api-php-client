@@ -9,6 +9,8 @@
 
 Yousign REST API Client.
 
+PRs are of course highly appreciated, as well as improvement suggestions!
+
 ## Structure
 
 ```
@@ -27,16 +29,22 @@ $ composer require timothecrespy/yousign-api-php-client
 
 ## Usage
 
+### Note
+
+For testing, and obviously for production, an internet connexion is required.
+
 ### Framework agnostic
+
 ``` php
 use TimotheCrespy\YousignClient;
 
-// It is recommended to store this value in a .env or equivalent file (and the API key, too)
+// It is recommended to store these values in a .env or equivalent file
 const YOUSIGN_PRODUCTION_API_URL = 'https://api.yousign.com';
+const YOUR_PRODUCTION_API_KEY = '[YOUR_PRODUCTION_API_KEY]';
 
 $yousignClient = new YousignClient([
     'api_url' => self::YOUSIGN_PRODUCTION_API_URL,
-    'api_key' => '[YOUR_PRODUCTION_API_KEY]'
+    'api_key' => self::YOUR_PRODUCTION_API_KEY
 ]);
 ```
 
@@ -45,16 +53,19 @@ As the Yousign production API is not free, you might want to test it, with the s
 ``` php
 use TimotheCrespy\YousignClient;
 
-// It is recommended to store this value in a .env or equivalent file (like the API key)
+// It is recommended to store these values in a .env or equivalent file
 const YOUSIGN_STAGING_API_URL = 'https://staging-api.yousign.com';
+const YOUR_STAGING_API_KEY = '[YOUR_STAGING_API_KEY]';
 
 $yousignClient = new YousignClient([
     'api_url' => self::YOUSIGN_STAGING_API_URL,
-    'api_key' => '[YOUR_STAGING_API_KEY]'
+    'api_key' => self::YOUR_STAGING_API_KEY
 ]);
 ```
 
 ### Laravel
+
+Requirement : version `6.*` minimum
 
 ```php
 // If you are using Laravel (https://github.com/laravel/laravel), you could specify the default Laravel logger:
@@ -70,8 +81,16 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Testing
 
+All this package is based on the notion that the Yousign's `staging` environment is strictly similar to the `production` environment. Hence the tests based on this `staging` environment. Therefore, the API is not stubbed, as this `staging` environment is free and without any restriction.
+
+Testing for a PR is however done this way:
 ``` bash
 $ composer test
+```
+or
+``` bash
+$ ./vendor/bin/phpcs
+$ ./vendor/bin/phpunit
 ```
 
 ## Contributing

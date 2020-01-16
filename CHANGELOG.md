@@ -6,6 +6,13 @@ All notable changes to `yousign-api-php-client` will be documented in this file.
 
 ---
 
+## [1.3.1 - 2020-01-16](https://github.com/timothecrespy/yousign-api-php-client/v1.3.1)
+
+### Changed
+- Package dependencies
+
+---
+
 ## [1.3.0 - 2019-05-24](https://github.com/timothecrespy/yousign-api-php-client/v1.3.0)
 
 ### Added
