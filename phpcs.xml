@@ -19,7 +19,6 @@
     -->
     <file>src</file>
     <file>tests</file>
-    <file>examples</file>
 
     <!--
        You can hard-code ignore patterns directly into your
