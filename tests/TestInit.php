@@ -18,10 +18,12 @@ trait TestInit
      *
      * @return void
      */
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
-        $dotenv = new Dotenv(dirname(__DIR__, 1));
-        $dotenv->load();
+        if (file_exists(dirname(__DIR__, 1) . '/.env')) {
+            $dotenv = Dotenv::create(dirname(__DIR__, 1));
+            $dotenv->load();
+        }
         self::$stagingApiUrl = getenv('YOUSIGN_STAGING_API_URL');
         self::$stagingApiKey = getenv('YOUSIGN_STAGING_API_KEY');
 
@@ -81,8 +83,8 @@ trait TestInit
         $yousignClient->getLogger()->info('Deleting user with id: ' . $user->id);
 
         preg_match(YousignClient::UUID_REGEX, $user->id, $matches);
-        $id = $matches[ 0 ];
-        
+        $id = $matches[0];
+
         $response = $yousignClient->deleteUser(
             $id = $id
         );
@@ -100,8 +102,8 @@ trait TestInit
         $yousignClient->getLogger()->info('Deleting member with id: ' . $member->id);
 
         preg_match(YousignClient::UUID_REGEX, $member->id, $matches);
-        $id = $matches[ 0 ];
-        
+        $id = $matches[0];
+
         $response = $yousignClient->deleteMember(
             $id = $id
         );
@@ -119,8 +121,8 @@ trait TestInit
         $yousignClient->getLogger()->info('Deleting file object with id: ' . $fileObject->id);
 
         preg_match(YousignClient::UUID_REGEX, $fileObject->id, $matches);
-        $id = $matches[ 0 ];
-        
+        $id = $matches[0];
+
         $response = $yousignClient->deleteFileObject(
             $id = $id
         );

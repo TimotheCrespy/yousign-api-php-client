@@ -16,7 +16,6 @@ PRs are of course highly appreciated, as well as improvement suggestions!
 ```
 src/
 tests/
-examples/
 ```
 
 ## Install
