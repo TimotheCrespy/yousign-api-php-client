@@ -20,8 +20,10 @@ trait TestInit
      */
     public static function setUpBeforeClass(): void
     {
-        $dotenv = Dotenv::create(dirname(__DIR__, 1));
-        $dotenv->load();
+        if (file_exists(dirname(__DIR__, 1) . '/.env')) {
+            $dotenv = Dotenv::create(dirname(__DIR__, 1));
+            $dotenv->load();
+        }
         self::$stagingApiUrl = getenv('YOUSIGN_STAGING_API_URL');
         self::$stagingApiKey = getenv('YOUSIGN_STAGING_API_KEY');
 
